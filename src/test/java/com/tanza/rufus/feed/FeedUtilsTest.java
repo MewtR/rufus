@@ -13,4 +13,13 @@ public class FeedUtilsTest {
         String someHtmlArticleDescription = "<h1> Today in the news </h1> <p> something or another </p>";
         Assert.assertFalse(FeedUtils.clean(someHtmlArticleDescription).contains("<"));
     }
+
+    @Test
+    public void testHtml() {
+        String DifferentCase1 = "<h1>  .</h1> <br> </br>";
+        Assert.assertFalse(FeedUtils.clean(DifferentCase1).contains("<"));
+    }
+
+
+
 }
