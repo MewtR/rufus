@@ -15,8 +15,8 @@ public class FeedUtilsTest {
     }
 
     @Test
-    public void testHtml() {
-        String DifferentCase1 = "<h1>  .</h1> <br> </br>";
+    public void testHtml2() {
+        String DifferentCase1 = "<h1>  </h1> <br> </br>";
         Assert.assertFalse(FeedUtils.clean(DifferentCase1).contains("<"));
     }
 
