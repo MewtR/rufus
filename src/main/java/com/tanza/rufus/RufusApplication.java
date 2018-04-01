@@ -53,7 +53,7 @@ public class RufusApplication extends Application<RufusConfiguration> {
         bootstrap.addBundle(new MigrationsBundle<RufusConfiguration>() {
             @Override
             public DataSourceFactory getDataSourceFactory(RufusConfiguration conf) {
-                return conf.getDataSourceFactory1();
+                return conf.getDataSourceFactory();
             }
 
             @Override
@@ -64,8 +64,8 @@ public class RufusApplication extends Application<RufusConfiguration> {
 
         bootstrap.addBundle(new MigrationsBundle<RufusConfiguration>() {
             @Override
-            public DataSourceFactory getDataSourceFactory(RufusConfiguration conf) {
-                return conf.getDataSourceFactory2();
+            public DataSourceFactory getDataSourceFactory1(RufusConfiguration conf) {
+                return conf.getDataSourceFactory1();
             }
 
             @Override
@@ -78,8 +78,8 @@ public class RufusApplication extends Application<RufusConfiguration> {
     @Override
     public void run(RufusConfiguration conf, Environment env) throws Exception {
         final DBIFactory factory = new DBIFactory();
-        final DBI jdbi = factory.build(env, conf.getDataSourceFactory1(), DB_SOURCE);
-        final DBI jdbi2 = factory.build(env, conf.getDataSourceFactory2(), DB_SOURCE2);
+        final DBI jdbi = factory.build(env, conf.getDataSourceFactory(), DB_SOURCE);
+        final DBI jdbi2 = factory.build(env, conf.getDataSourceFactory1(), DB_SOURCE2);
 
         final UserDao userDao = jdbi.onDemand(UserDao.class);
         final ArticleDao articleDao = jdbi.onDemand(ArticleDao.class);
