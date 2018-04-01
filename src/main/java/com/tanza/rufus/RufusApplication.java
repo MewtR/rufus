@@ -36,6 +36,7 @@ import org.skife.jdbi.v2.DBI;
 public class RufusApplication extends Application<RufusConfiguration> {
     private static final byte[] VERIFICATION_KEY = FeedUtils.getVerificationKey();
     private static final String DB_SOURCE = "h2";
+    private static final String DB_SOURCE2 = "hsqldb";
     private static final String BEARER = "bearer";
     private static final String REALM = "realm";
     private static final String ROOT_PATH = "/api/*";
@@ -52,15 +53,33 @@ public class RufusApplication extends Application<RufusConfiguration> {
         bootstrap.addBundle(new MigrationsBundle<RufusConfiguration>() {
             @Override
             public DataSourceFactory getDataSourceFactory(RufusConfiguration conf) {
-                return conf.getDataSourceFactory();
+                return conf.getDataSourceFactory1();
             }
+
+            @Override
+            public String name() {
+                return "db1";
+        }
+        });
+
+        bootstrap.addBundle(new MigrationsBundle<RufusConfiguration>() {
+            @Override
+            public DataSourceFactory getDataSourceFactory(RufusConfiguration conf) {
+                return conf.getDataSourceFactory2();
+            }
+
+            @Override
+            public String name() {
+                return "db2";
+        }
         });
     }
 
     @Override
     public void run(RufusConfiguration conf, Environment env) throws Exception {
         final DBIFactory factory = new DBIFactory();
-        final DBI jdbi = factory.build(env, conf.getDataSourceFactory(), DB_SOURCE);
+        final DBI jdbi = factory.build(env, conf.getDataSourceFactory1(), DB_SOURCE);
+        final DBI jdbi2 = factory.build(env, conf.getDataSourceFactory2(), DB_SOURCE2);
 
         final UserDao userDao = jdbi.onDemand(UserDao.class);
         final ArticleDao articleDao = jdbi.onDemand(ArticleDao.class);

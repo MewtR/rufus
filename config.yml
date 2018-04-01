@@ -1,7 +1,16 @@
 authenticationCachePolicy: "maximumSize=10000, expireAfterAccess=10m"
-database:
+database1:
   driverClass: org.h2.Driver
   url: jdbc:h2:./target/rufusdb
+logging:
+  appenders:
+    -
+      target: stdout
+      threshold: ALL
+      timeZone: UTC
+      type: console
+  level: INFO
+database2:
   driverClass: org.hsqldb.jdbc.JDBCDriver
   # database is stored in file at path below
   url: jdbc:hsqldb:file:target/rufushsqldb
