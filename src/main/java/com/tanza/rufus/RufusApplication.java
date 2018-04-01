@@ -64,7 +64,7 @@ public class RufusApplication extends Application<RufusConfiguration> {
 
         bootstrap.addBundle(new MigrationsBundle<RufusConfiguration>() {
             @Override
-            public DataSourceFactory getDataSourceFactory1(RufusConfiguration conf) {
+            public DataSourceFactory getDataSourceFactory(RufusConfiguration conf) {
                 return conf.getDataSourceFactory1();
             }
 
