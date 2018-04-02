@@ -10,6 +10,7 @@ import com.tanza.rufus.feed.FeedParser;
 import com.tanza.rufus.feed.FeedProcessorImpl;
 import com.tanza.rufus.feed.FeedUtils;
 import com.tanza.rufus.jobs.UserForklift;
+import com.tanza.rufus.jobs.ConsistencyCheckerUsers;
 import com.tanza.rufus.resources.ArticleResource;
 import com.tanza.rufus.resources.UserResource;
 
@@ -134,6 +135,7 @@ public class RufusApplication extends Application<RufusConfiguration> {
                 .buildAuthFilter()
         ));
         this.runUserForklift(jdbi, jdbi2);
+        this.runUserConsistencyChecker(jdbi, jdbi2);
     }
 
     public void runUserForklift(DBI h2jdbi, DBI hsqldbjdbi) throws Exception {
@@ -153,6 +155,32 @@ public class RufusApplication extends Application<RufusConfiguration> {
     userForklift.getJobDataMap().put(UserForklift.HSQLDB, hsqldbjdbi);
 
     sched.scheduleJob(userForklift, userFTrigger);
+    Thread.yield();
+
+
+        }catch (SchedulerException se) {
+              se.printStackTrace();
+          }
+
+    }
+
+    public void runUserConsistencyChecker(DBI h2jdbi, DBI hsqldbjdbi) throws Exception {
+    
+        try{
+    Scheduler sched = StdSchedulerFactory.getDefaultScheduler();
+
+    sched.start();
+
+    JobDetail ccUsers = newJob(ConsistencyCheckerUsers.class).withIdentity("ccUsers", "group2").build();
+
+    SimpleTrigger ccUsersTrigger = newTrigger().withIdentity("ccUsersTrigger", "group2").startNow()
+        .withSchedule(simpleSchedule().withIntervalInSeconds(10).repeatForever()).build();
+
+    
+    ccUsers.getJobDataMap().put(ConsistencyCheckerUsers.H2DB, h2jdbi);
+    ccUsers.getJobDataMap().put(ConsistencyCheckerUsers.HSQLDB, hsqldbjdbi);
+
+    sched.scheduleJob(ccUsers, ccUsersTrigger);
     Thread.yield();
 
 
