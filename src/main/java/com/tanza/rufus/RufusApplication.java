@@ -9,6 +9,7 @@ import com.tanza.rufus.db.UserDao;
 import com.tanza.rufus.feed.FeedParser;
 import com.tanza.rufus.feed.FeedProcessorImpl;
 import com.tanza.rufus.feed.FeedUtils;
+import com.tanza.rufus.jobs.UserForklift;
 import com.tanza.rufus.resources.ArticleResource;
 import com.tanza.rufus.resources.UserResource;
 
@@ -34,6 +35,14 @@ import org.jose4j.keys.HmacKey;
 import java.util.List;
 
 import org.skife.jdbi.v2.DBI;
+import org.quartz.JobDetail;
+import org.quartz.Scheduler;
+import org.quartz.SchedulerException;
+import org.quartz.SimpleTrigger;
+import org.quartz.impl.StdSchedulerFactory;
+import static org.quartz.JobBuilder.*;
+import static org.quartz.TriggerBuilder.*;
+import static org.quartz.SimpleScheduleBuilder.*;
 
 public class RufusApplication extends Application<RufusConfiguration> {
     private static final byte[] VERIFICATION_KEY = FeedUtils.getVerificationKey();
@@ -82,7 +91,6 @@ public class RufusApplication extends Application<RufusConfiguration> {
         final DBIFactory factory = new DBIFactory();
         final DBI jdbi = factory.build(env, conf.getDataSourceFactory1(), DB_SOURCE);
         final DBI jdbi2 = factory.build(env, conf.getDataSourceFactory2(), DB_SOURCE2);
-        this.userForklift(jdbi, jdbi2);
 
         final UserDao userDao = jdbi.onDemand(UserDao.class);
         final ArticleDao articleDao = jdbi.onDemand(ArticleDao.class);
@@ -125,24 +133,34 @@ public class RufusApplication extends Application<RufusConfiguration> {
                 .setAuthenticator(cachingJwtAuthenticator)
                 .buildAuthFilter()
         ));
+        this.runUserForklift(jdbi, jdbi2);
     }
 
-    public void userForklift(DBI h2jdbi, DBI hsqldbjdbi) throws Exception{
+    public void runUserForklift(DBI h2jdbi, DBI hsqldbjdbi) throws Exception {
+    
+        try{
+    Scheduler sched = StdSchedulerFactory.getDefaultScheduler();
 
-        UserDao userDao = h2jdbi.open(UserDao.class);
-        List<User> usersOldDb = userDao.getAll();
-        userDao.close();
+    sched.start();
 
-        if (!usersOldDb.isEmpty()){
-        userDao = hsqldbjdbi.open(UserDao.class);
-        List<Long> usersNewDbIds = userDao.getAllIds();
-        for (User user : usersOldDb){
-            if(!usersNewDbIds.contains(user.getId()))
-            userDao.insertUser(user);
-        }
-        userDao.close();
-        }
+    JobDetail userForklift = newJob(UserForklift.class).withIdentity("userForklift", "group1").build();
+
+    SimpleTrigger userFTrigger = newTrigger().withIdentity("userFTrigger", "group1").startNow()
+        .withSchedule(simpleSchedule().withIntervalInSeconds(60).repeatForever()).build();
+
+    
+    userForklift.getJobDataMap().put(UserForklift.H2DB, h2jdbi);
+    userForklift.getJobDataMap().put(UserForklift.HSQLDB, hsqldbjdbi);
+
+    sched.scheduleJob(userForklift, userFTrigger);
+    Thread.yield();
+
+
+        }catch (SchedulerException se) {
+              se.printStackTrace();
+          }
 
     }
+
 
 }
