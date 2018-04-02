@@ -20,6 +20,10 @@ public interface UserDao {
     List<User> getAll();
 
     @RegisterMapper(UserMapper.class)
+    @SqlQuery("select userid from rufususer")
+    List<Long> getAllIds();
+
+    @RegisterMapper(UserMapper.class)
     @SqlQuery("select * from rufususer where EMAIL = :email")
     User findByEmail(@Bind("email") String email);
 
