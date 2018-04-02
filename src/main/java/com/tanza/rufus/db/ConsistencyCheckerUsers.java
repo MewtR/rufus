@@ -21,6 +21,11 @@ public class ConsistencyCheckerUsers {
 	}
 
 	public int execute(JobExecutionContext context) throws JobExecutionException {
+		return consitencyCheckerFull (context);
+
+	}
+	
+	private int consitencyCheckerFull (JobExecutionContext context) throws JobExecutionException {
 		System.out.println("Consistency check start");
 		JobDataMap data = context.getJobDetail().getJobDataMap();
 
@@ -52,7 +57,6 @@ public class ConsistencyCheckerUsers {
 		}
 		
 		return inconsistencies;
-
 	}
 }
 
