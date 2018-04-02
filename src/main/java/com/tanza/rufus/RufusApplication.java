@@ -31,6 +31,8 @@ import org.jose4j.jwt.consumer.JwtConsumer;
 import org.jose4j.jwt.consumer.JwtConsumerBuilder;
 import org.jose4j.keys.HmacKey;
 
+import java.util.List;
+
 import org.skife.jdbi.v2.DBI;
 
 public class RufusApplication extends Application<RufusConfiguration> {
@@ -77,6 +79,7 @@ public class RufusApplication extends Application<RufusConfiguration> {
 
     @Override
     public void run(RufusConfiguration conf, Environment env) throws Exception {
+        this.userForklift(conf, env);
         final DBIFactory factory = new DBIFactory();
         final DBI jdbi = factory.build(env, conf.getDataSourceFactory1(), DB_SOURCE);
         final DBI jdbi2 = factory.build(env, conf.getDataSourceFactory2(), DB_SOURCE2);
@@ -123,4 +126,24 @@ public class RufusApplication extends Application<RufusConfiguration> {
                 .buildAuthFilter()
         ));
     }
+
+    public void userForklift(RufusConfiguration conf, Environment env) throws Exception{
+        DBIFactory factory = new DBIFactory();
+        DBI jdbi = factory.build(env, conf.getDataSourceFactory1(), "userforkliftread");
+
+        UserDao userDao = jdbi.open(UserDao.class);
+        List<User> users = userDao.getAll();
+        userDao.close();
+
+        if (!users.isEmpty()){
+        jdbi = factory.build(env, conf.getDataSourceFactory2(), "userforkliftwrite");
+        userDao = jdbi.open(UserDao.class);
+        for (User user : users){
+            userDao.insertUser(user);
+        }
+        userDao.close();
+        }
+
+    }
+
 }
