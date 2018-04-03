@@ -27,9 +27,11 @@ public class BasicAuthenticator {
 	public Optional<User> authenticate(String email, String password) {
 		User u = userDao.findByEmail(email);
 		User u2 = userDaoNewDb.findByEmail(email);
+        if (u2 != null){
 		boolean consistency=ConsistencyCheckerUsers.consistencyCheckerShadowReads(u,u2);
 		if(!consistency)
 			System.out.println("Not consistent shadow read!!");
+        }
 
 		//Checking if reached threshold to switch to new DB
 		if(switched){

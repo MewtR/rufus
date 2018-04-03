@@ -46,8 +46,10 @@ public class JwtAuthenticator implements Authenticator<JwtContext, User> {
             User u = userDao.findByEmail(jwtContext.getJwtClaims().getSubject());
             User u2 = userDaoNewDb.findByEmail(jwtContext.getJwtClaims().getSubject());
             boolean consistency=ConsistencyCheckerUsers.consistencyCheckerShadowReads(u,u2);
+        if (u2 != null){
             if(!consistency)
             	System.out.println("Not consistent shadow read!!");
+        }
             
         	//Checking if reached threshold to switch to new DB
     		if(switched){
@@ -60,19 +62,6 @@ public class JwtAuthenticator implements Authenticator<JwtContext, User> {
     		else{
                 return u != null ? Optional.of(u) : Optional.empty();
     		}
-        } catch (MalformedClaimException e) {
-            return Optional.empty();
-        }
-    }
-
-    public Optional<User> authenticate2(JwtContext jwtContext) throws AuthenticationException {
-        try {
-            if (TokenGenerator.isExpired(jwtContext)) {
-                return Optional.empty();
-            }
-            User u = userDao.findByEmail(jwtContext.getJwtClaims().getSubject());
-            
-            return u != null ? Optional.of(u) : Optional.empty();
         } catch (MalformedClaimException e) {
             return Optional.empty();
         }
