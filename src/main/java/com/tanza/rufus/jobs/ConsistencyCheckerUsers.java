@@ -67,5 +67,20 @@ public class ConsistencyCheckerUsers implements org.quartz.Job {
         userDao2.close();
 	}
 	
+	public static int consistencyCheckerShadowWrites(User user,UserDao userDao, UserDao userDaoNewDb){
+		System.out.println("Consistency Shadow Write check start");
+
+		int inconsistencies=0;
+
+		List<User> usersOldDb = userDao.getAll();
+		List<User> usersNewDb = userDaoNewDb.getAll();
+
+		if(!usersNewDb.contains(user)||!usersOldDb.contains(user))
+			inconsistencies++;
+
+
+		return inconsistencies;
+	}
+	
 }
 
