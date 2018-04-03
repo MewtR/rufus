@@ -64,4 +64,17 @@ public class JwtAuthenticator implements Authenticator<JwtContext, User> {
             return Optional.empty();
         }
     }
+
+    public Optional<User> authenticate2(JwtContext jwtContext) throws AuthenticationException {
+        try {
+            if (TokenGenerator.isExpired(jwtContext)) {
+                return Optional.empty();
+            }
+            User u = userDao.findByEmail(jwtContext.getJwtClaims().getSubject());
+            
+            return u != null ? Optional.of(u) : Optional.empty();
+        } catch (MalformedClaimException e) {
+            return Optional.empty();
+        }
+    }
 }
