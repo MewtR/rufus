@@ -20,6 +20,10 @@ public interface UserDao {
     List<User> getAll();
 
     @RegisterMapper(UserMapper.class)
+    @SqlQuery("select userid from rufususer")
+    List<Long> getAllIds();
+
+    @RegisterMapper(UserMapper.class)
     @SqlQuery("select * from rufususer where EMAIL = :email")
     User findByEmail(@Bind("email") String email);
 
@@ -28,6 +32,13 @@ public interface UserDao {
     void addUser(@BindBean User user);
 
     @RegisterMapper(UserMapper.class)
+    @SqlUpdate("insert into rufususer (USERID, EMAIL, PASSWORD) values (:id, :email, :password)")
+    void insertUser(@BindBean User user);
+
+    @RegisterMapper(UserMapper.class)
     @SqlUpdate("delete from rufususer where email = :email")
     void deleteUser(@Bind("email") String email);
+
+    //used to close the connection
+    void close();
 }

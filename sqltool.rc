@@ -1,0 +1,5 @@
+ 
+urlid rufushsqldb
+url jdbc:hsqldb:target/rufushsqldb;sql.syntax_mys=true
+username sa
+password

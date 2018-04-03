@@ -45,4 +45,11 @@ public class User implements Principal, Serializable {
     public void setPassword(String password) {
         this.password = password;
     }
+
+    @Override
+    public boolean equals(Object o){
+        User u = (User) o;
+        return ((this.id == u.getId()) && (this.email.equals(u.getEmail())) && (this.password.equals(u.getPassword())));
+    }
+
 }
