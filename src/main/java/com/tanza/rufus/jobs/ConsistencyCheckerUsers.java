@@ -42,31 +42,31 @@ public class ConsistencyCheckerUsers implements org.quartz.Job {
 		List<User> usersOldDb = userDao.getAll();
 
 		UserDao userDao2 = hsqldbjdbi.open(UserDao.class);
-	    List<User> usersNewDb= userDao2.getAll();
+		List<User> usersNewDb= userDao2.getAll();
 
 		if (!usersNewDb.isEmpty()){
 			for (User user : usersNewDb){
-                //If the new database contains a record
-                //not found in the old database (inconsistency) delete it from the old database then run forklift
+				//If the new database contains a record
+				//not found in the old database (inconsistency) delete it from the old database then run forklift
 				if(!usersOldDb.contains(user))
-                    userDao2.deleteUser(user.getEmail());
+					userDao2.deleteUser(user.getEmail());
 			}
-            //refresh list
-            usersNewDb = userDao2.getAll();
+			//refresh list
+			usersNewDb = userDao2.getAll();
 		}
 
-        //Forklift
+		//Forklift
 		if (!usersOldDb.isEmpty()){
-        for (User user : usersOldDb){
-            if(!usersNewDb.contains(user))
-            userDao2.insertUser(user);
-        }
+			for (User user : usersOldDb){
+				if(!usersNewDb.contains(user))
+					userDao2.insertUser(user);
+			}
 		}
 
-        userDao.close();
-        userDao2.close();
+		userDao.close();
+		userDao2.close();
 	}
-	
+
 	public static int consistencyCheckerShadowWrites(User user,UserDao userDao, UserDao userDaoNewDb){
 		System.out.println("Consistency Shadow Write check start");
 
@@ -81,6 +81,17 @@ public class ConsistencyCheckerUsers implements org.quartz.Job {
 
 		return inconsistencies;
 	}
-	
+	public static boolean consistencyCheckerShadowReads(User oldDb, User newDb){
+		boolean consistent;
+		if(oldDb.equals(newDb)){
+			consistent=true;
+		}
+		else{
+			consistent=false;
+		}
+
+		return consistent;
+	}
+
 }
 

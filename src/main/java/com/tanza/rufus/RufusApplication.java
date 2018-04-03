@@ -111,14 +111,14 @@ public class RufusApplication extends Application<RufusConfiguration> {
             .build();
         final CachingJwtAuthenticator<User> cachingJwtAuthenticator = new CachingJwtAuthenticator<>(
             env.metrics(),
-            new JwtAuthenticator(userDao),
+            new JwtAuthenticator(userDao,userDaoNewDb),
             conf.getAuthenticationCachePolicy()
         );
 
         env.jersey().register(new ArticleResource(userDao, articleDao, processor, parser));
         env.jersey().register(
             new UserResource(
-                new BasicAuthenticator(userDao),
+                new BasicAuthenticator(userDao,userDaoNewDb),
                 new TokenGenerator(VERIFICATION_KEY),
                 userDao,
                 userDaoNewDb,
