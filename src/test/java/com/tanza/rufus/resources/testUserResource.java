@@ -36,7 +36,7 @@ public class testUserResource {
 		when(user.getEmail()).thenReturn("testing@gmail.com");
 		
 		//call the class under test
-		UserResource userRes = new UserResource(mockBA,mockToken,mockUserDao,mockArticle);
+		UserResource userRes = new UserResource(mockBA,mockToken,mockUserDao, mockUserDao,mockArticle);
 		
 		userRes.deleteUser(user);
 		

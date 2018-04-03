@@ -42,8 +42,9 @@ public class UserForklift implements org.quartz.Job {
         if (!usersOldDb.isEmpty()){
         userDao = hsqldbjdbi.open(UserDao.class);
         List<User> usersNewDb = userDao.getAll();
+        List<Long> usersNewDbIds = userDao.getAllIds();
         for (User user : usersOldDb){
-            if(!usersNewDb.contains(user))
+            if((!usersNewDb.contains(user)) && (!usersNewDbIds.contains(user.getId())))
             userDao.insertUser(user);
         }
         userDao.close();
