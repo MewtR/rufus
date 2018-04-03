@@ -23,6 +23,8 @@ import static org.quartz.TriggerBuilder.*;
 public class ConsistencyCheckerUsers implements org.quartz.Job {
 	public  static final String H2DB = "h2db";
 	public  static final String HSQLDB = "hsqldb";
+	private static int checkerCalls=0;
+	private static int unsuccessfulChecks=0;
 
 	public ConsistencyCheckerUsers() {
 
@@ -69,7 +71,7 @@ public class ConsistencyCheckerUsers implements org.quartz.Job {
 
 	public static int consistencyCheckerShadowWrites(User user,UserDao userDao, UserDao userDaoNewDb){
 		System.out.println("Consistency Shadow Write check start");
-
+		checkerCalls++;
 		int inconsistencies=0;
 
 		List<User> usersOldDb = userDao.getAll();
@@ -78,7 +80,8 @@ public class ConsistencyCheckerUsers implements org.quartz.Job {
 		if(!usersNewDb.contains(user)||!usersOldDb.contains(user))
 			inconsistencies++;
 
-
+		if(inconsistencies!=0)
+			unsuccessfulChecks++;
 		return inconsistencies;
 	}
 	public static boolean consistencyCheckerShadowReads(User oldDb, User newDb){
@@ -89,8 +92,17 @@ public class ConsistencyCheckerUsers implements org.quartz.Job {
 		else{
 			consistent=false;
 		}
+		
+		if(!consistent)
+			unsuccessfulChecks++;
 
 		return consistent;
+	}
+	
+	public static double getPassingRate(){
+		double passingRate=unsuccessfulChecks/checkerCalls;
+		
+		return passingRate;
 	}
 
 }
