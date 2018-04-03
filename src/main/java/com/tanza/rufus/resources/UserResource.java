@@ -81,7 +81,7 @@ public class UserResource {
 		User user = userDao.findByEmail(email);
 
 		//Shadow writing new user to new data storage
-		userDaoNewDb.addUser(new User(email, AuthUtils.hashPassword(pw)));
+		userDaoNewDb.insertUser(user);
 		//Instantly checking if databases consistent
 		int inconsistent=ConsistencyCheckerUsers.consistencyCheckerShadowWrites(user,userDao, userDaoNewDb);
 		if(inconsistent!=0){
