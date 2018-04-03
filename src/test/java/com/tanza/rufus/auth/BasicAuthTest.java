@@ -29,7 +29,7 @@ public class BasicAuthTest {
 		when(Gio.getPassword()).thenReturn(BCrypt.hashpw("giveUsA", BCrypt.gensalt()));
 		
 		//create a an authenticator
-		BasicAuthenticator authenticator = new BasicAuthenticator(MockInterface);
+		BasicAuthenticator authenticator = new BasicAuthenticator(MockInterface, MockInterface);
 		
 		//check to see if user Gio is initialized
 		Optional<User> u = authenticator.authenticate("gio@gmail.com", "giveUsA");
