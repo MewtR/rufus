@@ -101,7 +101,14 @@ public class ConsistencyCheckerUsers implements org.quartz.Job {
 	}
 	
 	public static double getPassingRate(){
-		double passingRate=unsuccessfulChecks/checkerCalls;
+		double passingRate;
+		
+		if(checkerCalls==0){
+			passingRate=0;
+		}
+		else{
+			passingRate= (checkerCalls-unsuccessfulChecks)/checkerCalls;
+		}
 		
 		return passingRate;
 	}

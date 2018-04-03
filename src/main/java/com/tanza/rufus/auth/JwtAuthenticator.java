@@ -19,6 +19,7 @@ public class JwtAuthenticator implements Authenticator<JwtContext, User> {
 
     private final UserDao userDao;
     private final UserDao userDaoNewDb;
+    private boolean switched=false;
 
     public JwtAuthenticator(UserDao userDao,UserDao userDaoNewDb) {
         this.userDao = userDao;
@@ -48,7 +49,17 @@ public class JwtAuthenticator implements Authenticator<JwtContext, User> {
             if(!consistency)
             	System.out.println("Not consistent shadow read!!");
             
-            return u != null ? Optional.of(u) : Optional.empty();
+        	//Checking if reached threshold to switch to new DB
+    		if(switched){
+    			return u2 != null ? Optional.of(u2) : Optional.empty();
+    		}
+    		else if(ConsistencyCheckerUsers.getPassingRate()>0.99){
+    			switched=true;
+    			return u2 != null ? Optional.of(u2) : Optional.empty();
+    		}
+    		else{
+                return u != null ? Optional.of(u) : Optional.empty();
+    		}
         } catch (MalformedClaimException e) {
             return Optional.empty();
         }
