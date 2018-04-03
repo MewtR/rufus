@@ -85,6 +85,7 @@ public class ConsistencyCheckerUsers implements org.quartz.Job {
 		return inconsistencies;
 	}
 	public static boolean consistencyCheckerShadowReads(User oldDb, User newDb){
+		checkerCalls++;
 		boolean consistent;
 		if(oldDb.equals(newDb)){
 			consistent=true;
