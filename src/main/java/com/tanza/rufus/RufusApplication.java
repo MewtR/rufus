@@ -92,8 +92,11 @@ public class RufusApplication extends Application<RufusConfiguration> {
         final DBIFactory factory = new DBIFactory();
         final DBI jdbi = factory.build(env, conf.getDataSourceFactory1(), DB_SOURCE);
         final DBI jdbi2 = factory.build(env, conf.getDataSourceFactory2(), DB_SOURCE2);
+        
 
         final UserDao userDao = jdbi.onDemand(UserDao.class);
+        final UserDao userDaoNewDb = jdbi2.onDemand(UserDao.class);
+        
         final ArticleDao articleDao = jdbi.onDemand(ArticleDao.class);
 
         final FeedProcessorImpl processor = FeedProcessorImpl.newInstance(articleDao);
@@ -118,6 +121,7 @@ public class RufusApplication extends Application<RufusConfiguration> {
                 new BasicAuthenticator(userDao),
                 new TokenGenerator(VERIFICATION_KEY),
                 userDao,
+                userDaoNewDb,
                 articleDao
             )
         );

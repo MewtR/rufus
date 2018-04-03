@@ -30,17 +30,20 @@ public class UserResource {
     private final BasicAuthenticator authenticator;
     private final TokenGenerator tokenGenerator;
     private final UserDao userDao;
+    private final UserDao userDaoNewDb;
     private final ArticleDao articleDao;
 
     public UserResource(
         BasicAuthenticator authenticator,
         TokenGenerator tokenGenerator,
         UserDao userDao,
+        UserDao userDaoNewDb,
         ArticleDao articleDao
     ) {
         this.authenticator = authenticator;
         this.tokenGenerator = tokenGenerator;
         this.userDao = userDao;
+        this.userDaoNewDb=userDaoNewDb;
         this.articleDao = articleDao;
     }
 
@@ -75,6 +78,11 @@ public class UserResource {
 
         userDao.addUser(new User(email, AuthUtils.hashPassword(pw)));
         User user = userDao.findByEmail(email);
+        
+        //Shadow writing new user to new data storage
+        userDaoNewDb.addUser(new User(email, AuthUtils.hashPassword(pw)));
+        //Instantly checking if databases consistent
+        
 
         List<String> starterFeeds = newUser.getStarterFeeds();
         long userId = user.getId();
