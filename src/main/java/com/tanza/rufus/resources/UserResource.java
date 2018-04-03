@@ -83,8 +83,11 @@ public class UserResource {
 		//Shadow writing new user to new data storage
 		userDaoNewDb.addUser(new User(email, AuthUtils.hashPassword(pw)));
 		//Instantly checking if databases consistent
-		ConsistencyCheckerUsers.consistencyCheckerShadowWrites(user,userDao, userDaoNewDb);
-
+		int inconsistent=ConsistencyCheckerUsers.consistencyCheckerShadowWrites(user,userDao, userDaoNewDb);
+		if(inconsistent!=0){
+			System.out.println("inconsistency in shadow write!!");
+		}
+		
 		List<String> starterFeeds = newUser.getStarterFeeds();
 		long userId = user.getId();
 		if (CollectionUtils.isNotEmpty(starterFeeds) && UserUtils.validStarterFeeds(starterFeeds)) {
