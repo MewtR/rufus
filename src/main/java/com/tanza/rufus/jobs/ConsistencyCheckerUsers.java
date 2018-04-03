@@ -3,6 +3,7 @@ package com.tanza.rufus.jobs;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.xml.bind.DatatypeConverter;
@@ -29,6 +30,7 @@ public class ConsistencyCheckerUsers implements org.quartz.Job {
 	public  static final String HSQLDB = "hsqldb";
 	private static int checkerCalls=0;
 	private static int unsuccessfulChecks=0;
+	private static HashMap<Long, String> hashRecord = new HashMap<Long,String>();
 
 	public ConsistencyCheckerUsers() {
 
@@ -43,33 +45,19 @@ public class ConsistencyCheckerUsers implements org.quartz.Job {
 
 		UserDao userDao = h2jdbi.open(UserDao.class);
 		List<User> usersOldDb = userDao.getAll();
-		List<String> usersOldDbHash = new ArrayList();
 
 		UserDao userDao2 = hsqldbjdbi.open(UserDao.class);
 		List<User> usersNewDb= userDao2.getAll();
 
-		MessageDigest md=null;
-		try {
-			md = MessageDigest.getInstance("MD5");
-		} catch (NoSuchAlgorithmException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		for(User user : usersOldDb){
-			String fullInfo=user.getId()+user.getEmail()+user.getName();
-			md.update(fullInfo.getBytes());
-			byte[] digest = md.digest();
-			String hashedInfo = DatatypeConverter.printHexBinary(digest).toUpperCase();
-			usersOldDbHash.add(hashedInfo);
-		}
 
 		if (!usersNewDb.isEmpty()){
 			for (User user : usersNewDb){
 				//If the new database contains a record
 				//not found in the old database (inconsistency) delete it from the old database then run forklift
-				if(!usersOldDb.contains(user))
+				if(!usersOldDb.contains(user)) {
 					userDao2.deleteUser(user.getEmail());
+					hashRecord.remove(user.getId());
+				}
 			}
 			//refresh list
 			usersNewDb = userDao2.getAll();
@@ -82,6 +70,10 @@ public class ConsistencyCheckerUsers implements org.quartz.Job {
 					userDao2.insertUser(user);
 			}
 		}
+
+			//Refresh list again
+			usersNewDb = userDao2.getAll();
+			this.hashConsistencyChecker(usersNewDb);
 
 		userDao.close();
 		userDao2.close();
@@ -130,6 +122,51 @@ public class ConsistencyCheckerUsers implements org.quartz.Job {
 		
 		return passingRate;
 	}
+	
+	private static String getHash(User user) {
+		MessageDigest md=null;
+		try {
+			md = MessageDigest.getInstance("MD5");
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+			String fullInfo=user.getId()+user.getEmail()+user.getName();
+			md.update(fullInfo.getBytes());
+			byte[] digest = md.digest();
+			String hashedInfo = DatatypeConverter.printHexBinary(digest).toUpperCase();
+			return hashedInfo;
+		
+	}
+	
+    public static void initializeHashRecord(UserDao userDaoNewDb) {
+		List<User> users = userDaoNewDb.getAll();
+		if (!users.isEmpty()) {
+		for(User user : users){
+		hashRecord.put(user.getId(), getHash(user));	
+		}
+		}
+    }
+    
+    private void hashConsistencyChecker(List<User> users) {
+    	if (hashRecord.isEmpty()) 
+    		return;
+    	
+		for(User user : users){
+			if (!hashRecord.containsKey(user.getId()))
+				hashRecord.put(user.getId(), getHash(user));	
+			else if (hashRecord.get(user.getId()).equalsIgnoreCase(getHash(user)))
+					continue; // no inconsistency
+			else {
+				System.out.println("Inconsitency with old hash value");
+				//Replace corrupted hash with new one
+				hashRecord.put(user.getId(), getHash(user));	
+			}
+
+		}
+
+    }
 
 }
 

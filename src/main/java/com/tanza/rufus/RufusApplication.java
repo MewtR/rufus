@@ -97,6 +97,10 @@ public class RufusApplication extends Application<RufusConfiguration> {
         final UserDao userDao = jdbi.onDemand(UserDao.class);
         final UserDao userDaoNewDb = jdbi2.onDemand(UserDao.class);
         
+        //Initialize hashRecord of users for new database (hsqldb)
+        ConsistencyCheckerUsers.initializeHashRecord(userDaoNewDb);
+
+        
         final ArticleDao articleDao = jdbi.onDemand(ArticleDao.class);
 
         final FeedProcessorImpl processor = FeedProcessorImpl.newInstance(articleDao);
