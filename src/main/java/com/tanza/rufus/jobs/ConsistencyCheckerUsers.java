@@ -1,7 +1,11 @@
 package com.tanza.rufus.jobs;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.xml.bind.DatatypeConverter;
 
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
@@ -33,18 +37,32 @@ public class ConsistencyCheckerUsers implements org.quartz.Job {
 	public void execute(JobExecutionContext context) throws JobExecutionException {
 		System.out.println("Consistency check for rufususer start");
 		JobDataMap data = context.getJobDetail().getJobDataMap();
-
 		int inconsistencies=0;
-
 		DBI h2jdbi = (DBI) data.get(H2DB);
 		DBI hsqldbjdbi = (DBI) data.get(HSQLDB);
 
 		UserDao userDao = h2jdbi.open(UserDao.class);
-
 		List<User> usersOldDb = userDao.getAll();
+		List<String> usersOldDbHash = new ArrayList();
 
 		UserDao userDao2 = hsqldbjdbi.open(UserDao.class);
 		List<User> usersNewDb= userDao2.getAll();
+
+		MessageDigest md=null;
+		try {
+			md = MessageDigest.getInstance("MD5");
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		for(User user : usersOldDb){
+			String fullInfo=user.getId()+user.getEmail()+user.getName();
+			md.update(fullInfo.getBytes());
+			byte[] digest = md.digest();
+			String hashedInfo = DatatypeConverter.printHexBinary(digest).toUpperCase();
+			usersOldDbHash.add(hashedInfo);
+		}
 
 		if (!usersNewDb.isEmpty()){
 			for (User user : usersNewDb){
@@ -93,13 +111,13 @@ public class ConsistencyCheckerUsers implements org.quartz.Job {
 		else{
 			consistent=false;
 		}
-		
+
 		if(!consistent)
 			unsuccessfulChecks++;
 
 		return consistent;
 	}
-	
+
 	public static double getPassingRate(){
 		double passingRate;
 		
