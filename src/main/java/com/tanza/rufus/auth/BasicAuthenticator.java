@@ -26,9 +26,11 @@ public class BasicAuthenticator {
     public Optional<User> authenticate(String email, String password) {
         User u = userDao.findByEmail(email);
         User u2 = userDaoNewDb.findByEmail(email);
+        if (u2 != null){
         boolean consistency=ConsistencyCheckerUsers.consistencyCheckerShadowReads(u,u2);
         if(!consistency)
-        	System.out.println("Not consistent shadow read!!");
+        	System.out.println("BasicAuthenticator: Not consistent shadow read!!");
+        }
         
         return u != null && AuthUtils.isPassword(password, u.getPassword()) ? Optional.of(u) : Optional.empty();
     }

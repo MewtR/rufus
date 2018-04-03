@@ -44,9 +44,11 @@ public class JwtAuthenticator implements Authenticator<JwtContext, User> {
             }
             User u = userDao.findByEmail(jwtContext.getJwtClaims().getSubject());
             User u2 = userDaoNewDb.findByEmail(jwtContext.getJwtClaims().getSubject());
+        if (u2 != null){
             boolean consistency=ConsistencyCheckerUsers.consistencyCheckerShadowReads(u,u2);
             if(!consistency)
-            	System.out.println("Not consistent shadow read!!");
+            	System.out.println("JwtAuthenticator: Not consistent shadow read!!");
+        }
             
             return u != null ? Optional.of(u) : Optional.empty();
         } catch (MalformedClaimException e) {
