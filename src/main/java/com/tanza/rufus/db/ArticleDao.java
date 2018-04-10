@@ -58,6 +58,12 @@ public interface ArticleDao {
     @SqlUpdate("update sources set frontpage = TRUE where source = :source")
     void setFrontpage(@Bind("id") long id, @BindSource Source source);
 
+    @SqlUpdate("update sources set frontpage = TRUE where source = :source AND userid = :id")
+    void setFront(@Bind("id") long id, @Bind("source")String source);
+
+    @SqlUpdate("update sources set frontpage = FALSE where source = :source AND userid = :id")
+    void removeFront(@Bind("id") long id, @Bind("source") String source);
+
     @SqlUpdate("update sources set frontpage = FALSE where source = :source")
     void removeFrontpage(@Bind("id") long id, @BindSource Source source);
 

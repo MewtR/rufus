@@ -51,17 +51,24 @@ public class SourceForklift implements org.quartz.Job {
         for (User u : usersOldDb){
             //Get the source of each user in old db
         List<Source> uSourcesOldDb = sourcesDao.getSources(u.getId());
-            if (!uSourcesOldDb.isEmpty()){
-              List<Source> uSourcesNewDb = sourcesDao2.getSources(u.getId());
+        List<Source> uSourcesNewDb = sourcesDao2.getSources(u.getId());
+            if ((!uSourcesOldDb.isEmpty()) && (uSourcesOldDb.get(0) != null)){
               for (Source s : uSourcesOldDb){
                   //Check that new db does not contain same source
                   //for the same user
                   if (!uSourcesNewDb.contains(s)){
                       //insert
-                      if (s.isFrontpage())
+                      if (s.isFrontpage()){
                       sourcesDao2.addFrontpageSource(u.getId(), s.getUrl().toString());
-                      else
+                      }else{
                       sourcesDao2.addSource(u.getId(), s.getUrl().toString());
+                      }
+                      //Deal with frontpage inconsistency if source is already in new db
+                  }else {
+                      if (s.isFrontpage())
+                          sourcesDao2.setFront(u.getId(), s.getUrl().toString());
+                      else
+                          sourcesDao2.removeFront(u.getId(), s.getUrl().toString());
                   }
 
               }
