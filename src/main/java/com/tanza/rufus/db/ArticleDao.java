@@ -63,4 +63,7 @@ public interface ArticleDao {
 
     @SqlQuery("select count(source) > 0 from rufususer left outer join sources on rufususer.userid = sources.userid where rufususer.userid = :id")
     boolean hasSubscriptions(@Bind("id") long id);
+
+    //used to close the connection
+    void close();
 }

@@ -53,6 +53,14 @@ public class Source implements Serializable {
         this.tags = tags;
     }
 
+    @Override
+    public boolean equals(Object o){
+        if (o == null)
+            return false;
+        Source s = (Source) o;
+        return this.url.equals(s.getUrl()) ;
+    }
+
     /**
      * POJO used to represent a {@link Source} for display on the client.
      */

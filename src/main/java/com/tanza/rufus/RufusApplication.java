@@ -10,6 +10,7 @@ import com.tanza.rufus.feed.FeedParser;
 import com.tanza.rufus.feed.FeedProcessorImpl;
 import com.tanza.rufus.feed.FeedUtils;
 import com.tanza.rufus.jobs.UserForklift;
+import com.tanza.rufus.jobs.SourceForklift;
 import com.tanza.rufus.jobs.ConsistencyCheckerUsers;
 import com.tanza.rufus.resources.ArticleResource;
 import com.tanza.rufus.resources.UserResource;
@@ -144,6 +145,7 @@ public class RufusApplication extends Application<RufusConfiguration> {
         ));
         this.runUserForklift(jdbi, jdbi2);
         this.runUserConsistencyChecker(jdbi, jdbi2);
+        this.runSourceForklift(jdbi, jdbi2);
     }
 
     public void runUserForklift(DBI h2jdbi, DBI hsqldbjdbi) throws Exception {
@@ -198,5 +200,30 @@ public class RufusApplication extends Application<RufusConfiguration> {
 
     }
 
+    public void runSourceForklift(DBI h2jdbi, DBI hsqldbjdbi) throws Exception {
+    
+        try{
+    Scheduler sched = StdSchedulerFactory.getDefaultScheduler();
+
+    sched.start();
+
+    JobDetail sourceForklift = newJob(SourceForklift.class).withIdentity("sourceForklift", "group3").build();
+
+    SimpleTrigger sourceFTrigger = newTrigger().withIdentity("sourceFTrigger", "group3").startNow()
+        .withSchedule(simpleSchedule().withIntervalInSeconds(10).repeatForever()).build();
+
+    
+    sourceForklift.getJobDataMap().put(SourceForklift.H2DB, h2jdbi);
+    sourceForklift.getJobDataMap().put(SourceForklift.HSQLDB, hsqldbjdbi);
+
+    sched.scheduleJob(sourceForklift, sourceFTrigger);
+    Thread.yield();
+
+
+        }catch (SchedulerException se) {
+              se.printStackTrace();
+          }
+
+    }
 
 }
