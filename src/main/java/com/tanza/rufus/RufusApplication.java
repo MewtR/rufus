@@ -81,8 +81,8 @@ public class RufusApplication extends Application<RufusConfiguration> {
         final DBI jdbi = factory.build(env, conf.getDataSourceFactory1(), DB_SOURCE);
         final DBI jdbi2 = factory.build(env, conf.getDataSourceFactory2(), DB_SOURCE2);
 
-        final UserDao userDao = jdbi.onDemand(UserDao.class);
-        final ArticleDao articleDao = jdbi.onDemand(ArticleDao.class);
+        final UserDao userDao = jdbi2.onDemand(UserDao.class);
+        final ArticleDao articleDao = jdbi2.onDemand(ArticleDao.class);
 
         final FeedProcessorImpl processor = FeedProcessorImpl.newInstance(articleDao);
         final FeedParser parser = new FeedParser(articleDao, processor);
